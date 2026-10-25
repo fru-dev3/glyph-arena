@@ -1,0 +1,40 @@
+{
+  "name": "glyph-arena",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Glyph Arena: find out which AI recipe is best for your own vault and tasks",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "tauri": "tauri",
+    "test": "vitest run",
+    "dev:bridge": "bun scripts/dev-bridge.ts",
+    "demo-vault": "node scripts/demo-vault.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "lucide-react": "^0.577.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "playwright": "^1.61.1",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4",
+    "vitest": "^3.2.6"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

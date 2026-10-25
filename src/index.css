@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* Glyph family tokens, the same palette as Glyph Studio ("prevail" palette):
+   office green #008000 (lifted to #2e9e2e in dark for contrast), cyan as the AI
+   colour, warm paper light and graphite dark. Never gold. */
+@theme {
+  --font-sans: "Inter", -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+
+  --color-background: #f6f5f2;
+  --color-sidebar: #efede7;
+  --color-surface: #ffffff;
+  --color-surface-warm: #f3f1ec;
+  --color-surface-strong: #e7e3d9;
+  --color-border: #dcd7ca;
+  --color-border-subtle: #e9e5db;
+  --color-text-primary: #1a1814;
+  --color-text-secondary: #4d4636;
+  --color-text-muted: #7a725f;
+  --color-accent: #008000;
+  --color-accent-hover: #0a8f0a;
+  --color-accent-soft: rgba(0, 128, 0, 0.09);
+  --color-accent-border: rgba(0, 128, 0, 0.28);
+  --color-on-accent: #ffffff;
+  --color-ai: #0e8ba8;
+  --color-ai-soft: rgba(14, 139, 168, 0.10);
+  --color-home: #5b4fc4;
+  --color-home-soft: rgba(91, 79, 196, 0.10);
+  --color-ok: #2e7d32;
+  --color-warn: #b45309;
+  --color-warn-soft: rgba(180, 83, 9, 0.10);
+  --color-err: #c62828;
+  --color-err-soft: rgba(198, 40, 40, 0.09);
+}
+
+:root[data-theme="dark"] {
+  --color-background: #0b0b0d;
+  --color-sidebar: #111114;
+  --color-surface: #16161a;
+  --color-surface-warm: #1b1b20;
+  --color-surface-strong: #25252c;
+  --color-border: #2c2c34;
+  --color-border-subtle: #212128;
+  --color-text-primary: #f4f1ea;
+  --color-text-secondary: #bdb5a5;
+  --color-text-muted: #847c6c;
+  --color-accent: #2e9e2e;
+  --color-accent-hover: #45b545;
+  --color-accent-soft: rgba(46, 158, 46, 0.14);
+  --color-accent-border: rgba(46, 158, 46, 0.36);
+  --color-on-accent: #0b0b0d;
+  --color-ai: #3cd8ff;
+  --color-ai-soft: rgba(60, 216, 255, 0.10);
+  --color-home: #a99cff;
+  --color-home-soft: rgba(169, 156, 255, 0.12);
+  --color-ok: #52c41a;
+  --color-warn: #f59e0b;
+  --color-warn-soft: rgba(245, 158, 11, 0.12);
+  --color-err: #ff6b6b;
+  --color-err-soft: rgba(255, 107, 107, 0.12);
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.selectable, .selectable * { user-select: text; -webkit-user-select: text; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 6px; }
+button { cursor: default; }
+::selection { background: var(--color-accent-soft); }
+
+.display { font-family: var(--font-display); font-variation-settings: "opsz" 96; letter-spacing: -0.015em; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.drag { -webkit-app-region: drag; app-region: drag; }
+.nodrag { -webkit-app-region: no-drag; app-region: no-drag; }
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  box-shadow: 0 1px 0 rgba(26, 24, 20, 0.03), 0 8px 24px -16px rgba(26, 24, 20, 0.18);
+}
+:root[data-theme="dark"] .card { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 12px 28px -18px rgba(0, 0, 0, 0.7); }
+
+.scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--color-border) transparent; }
+.scroll::-webkit-scrollbar { width: 10px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes sweep { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .rise { animation: none; } }
+
+input, select, textarea { font: inherit; color: inherit; }
