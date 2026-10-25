@@ -12,3 +12,5 @@ ABOUT.md
 shots/
 .engine/
 dist-release/
+.unlazy/
+.unlazy-archive/
