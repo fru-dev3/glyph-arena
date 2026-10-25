@@ -47,6 +47,8 @@ ENGINE_DIR=../glyph-engine bash scripts/prepare-sidecar.sh   # or ENGINE_REF=mai
 npx tauri build
 ```
 
+Tests: `npm test` drives the bundled sidecar on a made-up vault (Home Only refusals, scoring, the policy file); `cargo test` in `src-tauri` covers the shell. The engine's own suite is in glyph-engine (`bun test src/arena`).
+
 For UI work in a browser: `node scripts/demo-vault.mjs /tmp/arena-demo`, then
 `ARENA_VAULT=/tmp/arena-demo bun scripts/dev-bridge.ts` and `npm run dev`. The demo vault
 is entirely made up.

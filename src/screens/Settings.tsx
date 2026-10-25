@@ -62,7 +62,7 @@ export function SettingsScreen() {
     <>
       <PageHeader title="Settings" sub="Stored as plain files in your vault (build/_meta/arena/config.json), so Studio and the CLI see the same settings." right={<Button kind="primary" onClick={save} icon={saved ? <Check className="h-4 w-4" /> : undefined}>{saved ? "Saved" : "Save"}</Button>} />
 
-      <div className="card grid grid-cols-3 gap-5 p-5 max-[1100px]:grid-cols-1">
+      <div className="card grid grid-cols-3 gap-5 p-5 max-[1100px]:grid-cols-2">
         <Field label="Monthly spend cap" hint="Checked before every cloud call. Local models are free.">
           <div className="flex h-9 items-center rounded-[10px] border border-border bg-surface px-3">
             <span className="text-text-muted">$</span>
@@ -90,7 +90,7 @@ export function SettingsScreen() {
       </div>
 
       <Section title="Home Only league">
-        <div className="card grid grid-cols-3 gap-5 p-5 max-[1100px]:grid-cols-1">
+        <div className="card grid grid-cols-3 gap-5 p-5 max-[1100px]:grid-cols-2">
           <Field label="Domains" hint="Comma separated. These never reach a cloud model.">
             <input defaultValue={c.home_only.join(", ")} onBlur={(e) => setC({ ...c, home_only: list(e.target.value) })} className="h-9 w-full rounded-[10px] border border-border bg-surface px-3 text-[13.5px]" />
           </Field>
