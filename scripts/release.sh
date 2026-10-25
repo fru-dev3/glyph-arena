@@ -11,15 +11,20 @@ VERSION="$(node -p 'require("./src-tauri/tauri.conf.json").version')"
 TAG="v$VERSION"
 echo "release: Glyph Arena $VERSION"
 
-bash scripts/prepare-sidecar.sh
-npm ci --no-audit --no-fund >/dev/null
-npx tauri build --bundles app,dmg
+if [ "${SKIP_BUILD:-0}" != "1" ]; then
+  bash scripts/prepare-sidecar.sh
+  npm ci --no-audit --no-fund >/dev/null
+  npx tauri build --bundles app,dmg
+fi
 
 APP="src-tauri/target/release/bundle/macos/Glyph Arena.app"
 DMG="$(ls src-tauri/target/release/bundle/dmg/*.dmg | head -1)"
 codesign --verify --deep --strict "$APP"
-codesign -dvv "$APP/Contents/MacOS/arena-engine" 2>&1 | grep -q "Authority=Developer ID Application" || { echo "sidecar is not Developer ID signed" >&2; exit 1; }
-spctl -a -vv "$APP" 2>&1 | tee /dev/stderr | grep -q "Notarized Developer ID" || { echo "app is not notarized" >&2; exit 1; }
+# Capture first: grep -q closing the pipe early would fail the step under pipefail.
+SIDE="$(codesign -dvv "$APP/Contents/MacOS/arena-engine" 2>&1)"
+[[ "$SIDE" == *"Authority=Developer ID Application"* ]] || { echo "sidecar is not Developer ID signed" >&2; exit 1; }
+GK="$(spctl -a -vv "$APP" 2>&1)"; echo "$GK"
+[[ "$GK" == *"Notarized Developer ID"* ]] || { echo "app is not notarized" >&2; exit 1; }
 
 # The DMG itself: sign, notarize, staple, so the download opens without a warning.
 codesign --force --sign "$APPLE_SIGNING_IDENTITY" --timestamp "$DMG"

@@ -25,6 +25,8 @@ function spawn(args: string[]) {
 
 Bun.serve({
   port: 1431,
+  // A local model can think for minutes between progress lines; keep the stream open.
+  idleTimeout: 255,
   async fetch(req) {
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
     const url = new URL(req.url);

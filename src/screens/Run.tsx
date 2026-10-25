@@ -36,8 +36,14 @@ export function RunScreen() {
   const leagueArgs = ["--domain", domain, "--kind", kind, "--weight", weight];
 
   useEffect(() => {
+    // Only the newest request may set the list: a slow answer for an older filter
+    // must not overwrite it (it once showed "6 tasks match" with the slider on 2).
+    let live = true;
     setMatches(null);
-    void arena<{ prompt: string; home_only: boolean }[]>(["tasks", "--source", source, ...leagueArgs, "--limit", String(n)]).then(setMatches).catch(() => setMatches([]));
+    void arena<{ prompt: string; home_only: boolean }[]>(["tasks", "--source", source, ...leagueArgs, "--limit", String(n)])
+      .then((m) => { if (live) setMatches(m); })
+      .catch(() => { if (live) setMatches([]); });
+    return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source, domain, kind, weight, n]);
   const loadRecent = () => arena<DuelBrief[]>(["duels", "--limit", "12"]).then(setRecent);
