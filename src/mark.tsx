@@ -1,14 +1,27 @@
-// The Glyph Arena mark: the family's petroglyph figure beside a podium, the winner's
-// step lit in the family's light green. Same geometry as assets/family/build.py "arena".
+// The Glyph Arena mark: the family's stick figure on office green, its head a medal
+// with a "1". Same geometry as glyph-arena.svg; at 32 px and below it draws
+// glyph-arena-small.svg (bolder "1", thicker lines) so it stays legible.
 export function ArenaMark({ size = 28 }: { size?: number }) {
+  const small = size <= 32;
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label="Glyph Arena">
       <rect width="100" height="100" rx="22" fill="#008000" />
-      <g transform="translate(10 10) scale(.8)" fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="26" cy="17" r="8" fill="#fff" stroke="none" />
-        <path d="M9 22v4a17 17 0 0 0 34 0v-4M26 43v21M26 64 15 89M26 64l11 25" strokeWidth="7" />
-        <path d="M52 87V67h13V52h16v22h13v13Z" strokeWidth="6" strokeOpacity=".78" />
-        <circle cx="73" cy="38" r="6.5" fill="#b9f0b0" stroke="none" />
+      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+        {small ? (
+          <>
+            <path d="M40 4L45 15M60 4L55 15" stroke="#fff" strokeWidth="6" />
+            <circle cx="50" cy="32" r="18" fill="#fff" />
+            <path d="M44 25L51 21V44" stroke="#008000" strokeWidth="7.5" />
+            <path d="M22 32v3a28 28 0 0 0 56 0v-3M50 63v8M50 71L38 86M50 71L62 86" stroke="#fff" strokeWidth="9" />
+          </>
+        ) : (
+          <>
+            <path d="M42 17L47 29M58 17L53 29" stroke="#fff" strokeWidth="4" />
+            <circle cx="50" cy="38" r="10" fill="#fff" />
+            <path d="M47 35.2L50.8 32.5V43.5" stroke="#008000" strokeWidth="3" />
+            <path d="M26 31v4a24 24 0 0 0 48 0v-4M50 59v10M50 69L39 84M50 69L61 84" stroke="#fff" strokeWidth="6" />
+          </>
+        )}
       </g>
     </svg>
   );
