@@ -36,8 +36,8 @@ export function ago(iso: string | number): string {
 type Tone = "accent" | "ai" | "home" | "muted" | "warn" | "err";
 const TONE: Record<Tone, string> = {
   accent: "bg-accent-soft text-accent border-accent-border",
-  ai: "bg-ai-soft text-ai border-[color:var(--color-ai-soft)]",
-  home: "bg-home-soft text-home border-[color:var(--color-home-soft)]",
+  ai: "bg-surface-warm text-text-secondary border-border-subtle",
+  home: "bg-accent-soft text-accent border-accent-border",
   muted: "bg-surface-warm text-text-muted border-border-subtle",
   warn: "bg-warn-soft text-warn border-[color:var(--color-warn-soft)]",
   err: "bg-err-soft text-err border-[color:var(--color-err-soft)]",
@@ -125,40 +125,39 @@ export function Bar({ value, tone = "accent" }: { value: number; tone?: "accent"
   );
 }
 
-const FAMILY: { test: RegExp; bg: string; fg: string }[] = [
-  { test: /^(claude|anthropic)$/, bg: "#d97757", fg: "#fff" },
-  { test: /^(codex|openai)$/, bg: "#1f1f1f", fg: "#fff" },
-  { test: /^(antigravity|gemini|google)$/, bg: "#3d6fe0", fg: "#fff" },
-  { test: /^(xai)$/, bg: "#555", fg: "#fff" },
-  { test: /^(deepseek|kimi|openrouter)$/, bg: "#4a5568", fg: "#fff" },
-];
-
-/** A recipe's mark: the vendor's colour with the model's initial; local models get a house. */
+/** A recipe's mark: the model's initial in grey, a house in the accent when it runs
+ *  at home. One accent and grey, like the rest of the family: a tile per vendor
+ *  colour turned the screen into somebody else's software. */
 export function RecipeMark({ recipe, size = 32 }: { recipe: Pick<Recipe, "cli" | "label"> | undefined; size?: number }) {
   if (!recipe) return <div className="shrink-0 rounded-[9px] bg-surface-strong" style={{ width: size, height: size }} />;
   const local = recipe.cli === "ollama";
-  const f = FAMILY.find((x) => x.test.test(recipe.cli));
-  const style = local
-    ? { background: "var(--color-home-soft)", color: "var(--color-home)" }
-    : { background: f?.bg ?? "#6b7280", color: f?.fg ?? "#fff" };
   return (
-    <div className="grid shrink-0 place-items-center rounded-[9px] font-semibold" style={{ width: size, height: size, fontSize: size * 0.44, ...style }}>
+    <div
+      className={`grid shrink-0 place-items-center rounded-[9px] font-semibold ${local ? "bg-accent-soft text-accent" : "bg-surface-strong text-text-secondary"}`}
+      style={{ width: size, height: size, fontSize: size * 0.44 }}
+    >
       {local ? <House style={{ width: size * 0.5, height: size * 0.5 }} strokeWidth={2.2} /> : (recipe.label.match(/[A-Za-z]/)?.[0] ?? "?").toUpperCase()}
     </div>
   );
 }
 
+/** Only what is NOT the plain default: a recipe with nothing added says nothing.
+ *  "plain prompt · no context · no tools" under every row was the same sentence
+ *  eight times down the page (Fru, 2026-10-31). */
 export function RecipeTags({ r }: { r: Pick<Recipe, "prompt" | "context" | "tools"> }) {
-  const t = [r.prompt !== "plain" ? `${r.prompt} prompt` : "plain prompt", r.context === "domain" ? "vault context" : "no context", r.tools === "web" ? "web" : "no tools"];
+  const t = [r.prompt !== "plain" ? `${r.prompt} prompt` : "", r.context === "domain" ? "vault context" : "", r.tools === "web" ? "web" : ""].filter(Boolean);
+  if (!t.length) return null;
   return <span className="text-[12px] text-text-muted">{t.join(" · ")}</span>;
 }
 
 export function PageHeader({ title, sub, right }: { title: string; sub?: ReactNode; right?: ReactNode }) {
   return (
-    <header className="mb-6 flex items-end justify-between gap-6">
+    // One line: a big heading and the controls. What a screen is for shows in the
+    // screen, not in a paragraph above it (Fru, 2026-10-31: "text slop"). `sub` is
+    // kept for the hover, so the words are still there for anyone who wants them.
+    <header className="mb-6 flex items-center justify-between gap-6">
       <div className="min-w-0">
-        <h1 className="display text-[34px] leading-[1.1] font-semibold text-text-primary">{title}</h1>
-        {sub && <p className="mt-1.5 max-w-[62ch] text-[14.5px] text-text-secondary">{sub}</p>}
+        <h1 className="display text-[34px] leading-[1.1] font-semibold text-text-primary" title={typeof sub === "string" ? sub : undefined}>{title}</h1>
       </div>
       {right && <div className="flex shrink-0 items-center gap-2">{right}</div>}
     </header>

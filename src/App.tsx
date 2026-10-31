@@ -1,4 +1,4 @@
-import { FlaskConical, Layers, Route as RouteIcon, Settings2, ShieldCheck, Swords, Trophy, Wallet } from "lucide-react";
+import { FlaskConical, Layers, Route as RouteIcon, Settings, ShieldCheck, Swords, Trophy, Wallet } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { arena, type Status } from "./api";
 import { ArenaMark } from "./mark";
@@ -24,7 +24,7 @@ const NAV: { id: ScreenId; label: string; icon: ReactNode }[] = [
   { id: "run", label: "Run", icon: <FlaskConical className="h-[18px] w-[18px]" /> },
   { id: "recipes", label: "Recipes", icon: <Layers className="h-[18px] w-[18px]" /> },
   { id: "safety", label: "Safety", icon: <ShieldCheck className="h-[18px] w-[18px]" /> },
-  { id: "settings", label: "Settings", icon: <Settings2 className="h-[18px] w-[18px]" /> },
+  // Settings is the gear in the header, never a second row for the same thing.
 ];
 
 function initialScreen(): ScreenId {
@@ -72,12 +72,22 @@ export default function App() {
     <ArenaCtx.Provider value={ctx}>
       <div className="flex h-full">
         <aside className="drag flex w-[232px] shrink-0 flex-col border-r border-border-subtle bg-sidebar px-3 pt-11 pb-3 max-[960px]:w-[68px]">
+          {/* Icon, name, spacer, gear, one line: the icon and the name already say
+              which app this is, so no tagline under them (Fru, 2026-10-31). */}
           <div className="nodrag mb-6 flex items-center gap-2.5 px-2 max-[960px]:justify-center max-[960px]:px-0">
             <ArenaMark size={30} />
-            <div className="leading-tight max-[960px]:hidden">
-              <div className="display text-[17px] font-semibold">Glyph Arena</div>
-              <div className="text-[11.5px] text-text-muted">The lab for Studio</div>
-            </div>
+            <div className="display truncate text-[17px] font-semibold max-[960px]:hidden">Glyph Arena</div>
+            <div className="flex-1 max-[960px]:hidden" />
+            <button
+              onClick={() => setScreen("settings")}
+              title="Settings"
+              aria-label="Settings"
+              className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors max-[960px]:hidden ${
+                screen === "settings" ? "bg-surface text-accent" : "text-text-muted hover:bg-surface/60 hover:text-text-primary"
+              }`}
+            >
+              <Settings className="h-4 w-4" />
+            </button>
           </div>
           <nav className="nodrag flex flex-col gap-0.5">
             {NAV.map((n, i) => {
@@ -101,13 +111,12 @@ export default function App() {
             })}
           </nav>
           <div className="flex-1" />
-          <button onClick={() => setScreen("settings")} className="nodrag flex items-center gap-3 rounded-xl border border-border-subtle bg-surface/70 p-2.5 text-left max-[960px]:justify-center max-[960px]:border-0 max-[960px]:bg-transparent max-[960px]:p-0" title="Monthly spend cap">
+          <button onClick={() => setScreen("settings")} className="nodrag flex items-center gap-3 rounded-xl border border-border-subtle bg-surface/70 p-2.5 text-left max-[960px]:justify-center max-[960px]:border-0 max-[960px]:bg-transparent max-[960px]:p-0" title={`Spent this month against the monthly cap`}>
             <Ring value={frac} size={38} stroke={4.5} tone={frac > 0.9 ? "err" : frac > 0.7 ? "warn" : "accent"}>
               <Wallet className="h-3.5 w-3.5 text-text-muted" />
             </Ring>
-            <div className="min-w-0 leading-tight max-[960px]:hidden">
-              <div className="num text-[13px] font-medium">{money(spent)} <span className="text-text-muted">of ${cap.toFixed(0)}</span></div>
-              <div className="text-[11.5px] text-text-muted">spent this month</div>
+            <div className="num min-w-0 truncate text-[13px] font-medium max-[960px]:hidden">
+              {money(spent)} <span className="text-text-muted">of ${cap.toFixed(0)}</span>
             </div>
           </button>
         </aside>

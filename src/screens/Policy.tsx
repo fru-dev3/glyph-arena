@@ -30,19 +30,19 @@ export function PolicyScreen() {
     <>
       <PageHeader
         title="Routing policy"
-        sub="What Glyph Studio uses. When a chat is on Auto, Studio follows the route for its domain and kind of task, and tells you it was routed by Arena."
+        sub="What Glyph Studio follows on Auto, per domain and kind of task."
         right={<Button icon={<RefreshCw className="h-4 w-4" />} onClick={rebuild} busy={busy}>Rebuild</Button>}
       />
 
       <div className="grid grid-cols-4 gap-3 max-[1100px]:grid-cols-2">
         <Stat visual={<div className="grid h-12 w-12 place-items-center rounded-2xl bg-surface-warm text-text-secondary"><Trophy className="h-5 w-5" /></div>}
-          value={String(shown)} label="Routes in use" foot={policy ? `updated ${ago(policy.generated_at)}` : "none yet"} />
-        <Stat visual={<Ring value={ub?.score ?? 0} size={48} stroke={5} tone="ai"><span className="num text-[11px] font-semibold">{ub?.score == null ? "--" : `${Math.round(ub.score * 100)}`}</span></Ring>}
-          value={ub?.score == null ? "--" : `${Math.round(ub.score * 100)}%`} label="Unblinding score" foot={ub?.picks ? `${ub.agree} of ${ub.picks} blind wins` : "after your first picks"} />
+          value={String(shown)} label="Routes" title={policy ? `Updated ${ago(policy.generated_at)}` : "No policy yet"} />
+        <Stat visual={<Ring value={ub?.score ?? 0} size={48} stroke={5} tone="accent"><span className="num text-[11px] font-semibold">{ub?.score == null ? "--" : `${Math.round(ub.score * 100)}`}</span></Ring>}
+          value={ub?.score == null ? "--" : `${Math.round(ub.score * 100)}%`} label="Unblinding" title={ub?.picks ? `Your blind pick matched the route in ${ub.agree} of ${ub.picks}` : "After your first blind picks"} />
         <Stat onClick={() => go("picks")} visual={<div className="grid h-12 w-12 place-items-center rounded-2xl bg-accent-soft text-accent"><Swords className="h-5 w-5" /></div>}
-          value={String(status!.counts.pending)} label="Picks waiting" foot="2 seconds each" />
+          value={String(status!.counts.pending)} label="Picks waiting" title="Two seconds each" />
         <Stat visual={<Ring value={cap ? spent / cap : 0} size={48} stroke={5} tone={cap && spent / cap > 0.9 ? "err" : "accent"}><span className="num text-[11px] font-semibold">{cap ? Math.round((spent / cap) * 100) : "--"}</span></Ring>}
-          value={money(spent)} label={`Spent of $${cap.toFixed(0)}`} foot={`monthly cap, ${status!.budget.month}`} />
+          value={money(spent)} label={`of $${cap.toFixed(0)}`} title={`Spent this month against the cap, ${status!.budget.month}`} />
       </div>
 
       {routes.length === 0 ? (
@@ -108,15 +108,15 @@ function collapse(list: Route[]): Route[] {
   return out;
 }
 
-function Stat({ visual, value, label, foot, onClick }: { visual: React.ReactNode; value: string; label: string; foot: string; onClick?: () => void }) {
+/** A number and what it is. What it means is on the hover, not under it. */
+function Stat({ visual, value, label, title, onClick }: { visual: React.ReactNode; value: string; label: string; title?: string; onClick?: () => void }) {
   const Tag = onClick ? "button" : "div";
   return (
-    <Tag onClick={onClick} className={`card flex items-center gap-3.5 p-4 text-left ${onClick ? "transition-transform hover:-translate-y-px" : ""}`}>
+    <Tag onClick={onClick} title={title} className={`card flex items-center gap-3.5 p-4 text-left ${onClick ? "transition-transform hover:-translate-y-px" : ""}`}>
       <div className="shrink-0">{visual}</div>
       <div className="min-w-0 leading-tight">
         <div className="num text-[21px] font-semibold">{value}</div>
         <div className="mt-0.5 truncate text-[13px] font-medium text-text-secondary">{label}</div>
-        <div className="truncate text-[12px] text-text-muted">{foot}</div>
       </div>
     </Tag>
   );
@@ -124,8 +124,14 @@ function Stat({ visual, value, label, foot, onClick }: { visual: React.ReactNode
 
 function RouteRow({ r, recipe }: { r: Route; recipe?: Recipe }) {
   const v = VERDICT[r.verdict];
+  const [open, setOpen] = useState(false);
   return (
-    <div className="grid grid-cols-[minmax(180px,1fr)_28px_minmax(220px,1.3fr)_170px] items-center gap-x-4 gap-y-2 px-5 py-4 max-[1100px]:grid-cols-[1fr_24px_1fr]">
+    <button
+      type="button"
+      onClick={() => setOpen((o) => !o)}
+      aria-expanded={open}
+      title={open ? "Hide why" : "Why this route"}
+      className="grid w-full grid-cols-[minmax(180px,1fr)_28px_minmax(220px,1.3fr)_170px] items-center gap-x-4 gap-y-2 px-5 py-4 text-left transition-colors hover:bg-surface-warm/60 max-[1100px]:grid-cols-[1fr_24px_1fr]">
       <div className="min-w-0">
         <div className="text-[14.5px] font-semibold">{r.kind === "*" ? "Anything else" : KIND_LABEL[r.kind]}</div>
         <div className="text-[12.5px] text-text-muted">{r.weight === "*" ? "All weights" : `${WEIGHT_LABEL[r.weight]} tasks`} · {r.games} games</div>
@@ -145,9 +151,11 @@ function RouteRow({ r, recipe }: { r: Route; recipe?: Recipe }) {
           <span className="num w-9 text-right text-[11.5px] text-text-muted">{Math.round(r.confidence * 100)}%</span>
         </div>
       </div>
-      <p className="selectable col-span-4 text-[13.5px] leading-relaxed text-text-secondary max-[1100px]:col-span-3">
-        {r.why}
-      </p>
-    </div>
+      {open && (
+        <p className="selectable col-span-4 text-[13.5px] leading-relaxed text-text-secondary max-[1100px]:col-span-3">
+          {r.why}
+        </p>
+      )}
+    </button>
   );
 }

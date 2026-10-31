@@ -1,6 +1,6 @@
 [package]
 name = "glyph-arena"
-version = "0.1.0"
+version = "0.1.1"
 description = "Glyph Arena: find out which AI recipe is best for your own vault and tasks"
 authors = ["fru.dev"]
 edition = "2021"

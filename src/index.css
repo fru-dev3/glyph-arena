@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
-/* Glyph family tokens, the same palette as Glyph Studio ("prevail" palette):
-   office green #008000 (lifted to #2e9e2e in dark for contrast), cyan as the AI
-   colour, warm paper light and graphite dark. Never gold. */
+/* Glyph family tokens. One accent, office green #008000 (lifted to #2e9e2e in dark
+   for contrast); grey carries everything else. No second hue: no cyan, no purple,
+   never gold. Amber and red are kept for warnings and errors, which are states, not
+   decoration. One typeface, the system sans, as every other app in the family. */
 @theme {
-  --font-sans: "Inter", -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
+  --font-display: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
 
   --color-background: #f6f5f2;
@@ -23,10 +24,10 @@
   --color-accent-soft: rgba(0, 128, 0, 0.09);
   --color-accent-border: rgba(0, 128, 0, 0.28);
   --color-on-accent: #ffffff;
-  --color-ai: #0e8ba8;
-  --color-ai-soft: rgba(14, 139, 168, 0.10);
-  --color-home: #5b4fc4;
-  --color-home-soft: rgba(91, 79, 196, 0.10);
+  --color-ai: #4d4636;
+  --color-ai-soft: rgba(77, 70, 54, 0.08);
+  --color-home: #008000;
+  --color-home-soft: rgba(0, 128, 0, 0.09);
   --color-ok: #2e7d32;
   --color-warn: #b45309;
   --color-warn-soft: rgba(180, 83, 9, 0.10);
@@ -50,10 +51,10 @@
   --color-accent-soft: rgba(46, 158, 46, 0.14);
   --color-accent-border: rgba(46, 158, 46, 0.36);
   --color-on-accent: #0b0b0d;
-  --color-ai: #3cd8ff;
-  --color-ai-soft: rgba(60, 216, 255, 0.10);
-  --color-home: #a99cff;
-  --color-home-soft: rgba(169, 156, 255, 0.12);
+  --color-ai: #bdb5a5;
+  --color-ai-soft: rgba(189, 181, 165, 0.10);
+  --color-home: #2e9e2e;
+  --color-home-soft: rgba(46, 158, 46, 0.14);
   --color-ok: #52c41a;
   --color-warn: #f59e0b;
   --color-warn-soft: rgba(245, 158, 11, 0.12);
@@ -80,7 +81,8 @@ body {
 button { cursor: default; }
 ::selection { background: var(--color-accent-soft); }
 
-.display { font-family: var(--font-display); font-variation-settings: "opsz" 96; letter-spacing: -0.015em; }
+/* Headings: the same face as the body, just bigger and tighter. */
+.display { font-family: var(--font-display); letter-spacing: -0.02em; }
 .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .drag { -webkit-app-region: drag; app-region: drag; }
 .nodrag { -webkit-app-region: no-drag; app-region: no-drag; }
