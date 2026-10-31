@@ -27,9 +27,12 @@ const NAV: { id: ScreenId; label: string; icon: ReactNode }[] = [
   // Settings is the gear in the header, never a second row for the same thing.
 ];
 
+// Every screen, not just the ones with a nav row: Settings is reached by the gear
+// and by #settings, and a deep link to it has to keep working.
+const SCREENS: ScreenId[] = [...NAV.map((n) => n.id), "settings"];
 function initialScreen(): ScreenId {
   const h = location.hash.replace("#", "") as ScreenId;
-  return NAV.some((n) => n.id === h) ? h : "policy";
+  return SCREENS.includes(h) ? h : "policy";
 }
 
 export default function App() {
