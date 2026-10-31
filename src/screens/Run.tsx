@@ -50,6 +50,9 @@ export function RunScreen() {
   useEffect(() => { void loadRecent(); }, []);
 
   const localOnly = (r?: Recipe) => !!r && r.cli === "ollama";
+  // The engine refuses a pair it cannot run before it spends anything; say so here
+  // rather than letting the run fail on its first task.
+  const cannotRun = ra?.blocked ?? rb?.blocked ?? null;
   const homeTasks = matches?.filter((m) => m.home_only).length ?? 0;
   const homeBlocked = homeTasks > 0 && !(localOnly(ra) && localOnly(rb));
 
@@ -129,8 +132,9 @@ export function RunScreen() {
               </>
             )}
             {homeBlocked && <span className="flex items-center gap-1.5 text-warn"><AlertTriangle className="h-4 w-4" />Home Only tasks are skipped unless both recipes are local.</span>}
+            {cannotRun && <span className="flex items-center gap-1.5 text-warn"><AlertTriangle className="h-4 w-4" />{cannotRun}</span>}
           </div>
-          <Button kind="primary" size="lg" icon={<Play className="h-4 w-4" />} onClick={run} busy={running} disabled={!a || !b || a === b || !matches?.length}>
+          <Button kind="primary" size="lg" icon={<Play className="h-4 w-4" />} onClick={run} busy={running} disabled={!a || !b || a === b || !matches?.length || !!cannotRun}>
             Run {matches?.length ?? ""} duels
           </Button>
         </div>

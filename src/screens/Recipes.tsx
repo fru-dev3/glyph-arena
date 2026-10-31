@@ -1,4 +1,4 @@
-import { Globe, House, Plus, Radar, Telescope } from "lucide-react";
+import { Ban, Globe, House, Plus, Radar, Telescope } from "lucide-react";
 import { useEffect, useState } from "react";
 import { arena, type Recipe, type Runtime, type Scouted } from "../api";
 import { useArena } from "../App";
@@ -54,9 +54,10 @@ export function RecipesScreen() {
                 <span className="truncate text-[15px] font-semibold">{r.label}</span>
                 {routed.has(r.id) && <Chip tone="accent">Routed</Chip>}
                 {r.cli === "ollama" && <Chip tone="home" icon={<House className="h-3 w-3" />}>Local</Chip>}
+                {r.blocked && <Chip tone="warn" icon={<Ban className="h-3 w-3" />}>Cannot run</Chip>}
               </div>
               <div className="truncate text-[12.5px] text-text-secondary">{r.cli} · {r.model}</div>
-              <RecipeTags r={r} />
+              {r.blocked ? <p className="mt-1 text-[12.5px] text-warn">{r.blocked}</p> : <RecipeTags r={r} />}
             </div>
             <button
               onClick={() => toggle(r)}

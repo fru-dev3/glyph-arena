@@ -19,5 +19,8 @@ fi
 [ -f "$SRC/src/arena/main.ts" ] || { echo "prepare-sidecar: $SRC has no src/arena (needs glyph-engine with Arena)" >&2; exit 1; }
 ( cd "$SRC" && { [ -d node_modules ] || bun install --frozen-lockfile >/dev/null; } && bun build --compile --external chromium-bidi --outfile=dist/arena-engine src/arena/main.ts )
 mkdir -p "$HERE/src-tauri/binaries"
+# Remove first: copying over a binary macOS has already run replaces the bytes under
+# a cached code signature, and the next run is killed on the spot (exit 137, no output).
+rm -f "$HERE/src-tauri/binaries/arena-engine-$TRIPLE"
 cp "$SRC/dist/arena-engine" "$HERE/src-tauri/binaries/arena-engine-$TRIPLE"
 echo "prepare-sidecar: src-tauri/binaries/arena-engine-$TRIPLE ($(du -h "$HERE/src-tauri/binaries/arena-engine-$TRIPLE" | cut -f1)) from $(git -C "$SRC" rev-parse --short HEAD)"

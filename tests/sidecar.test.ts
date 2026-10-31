@@ -3,7 +3,7 @@
 // the binary inside the app keeps the promises the UI makes. No call leaves this Mac:
 // every duel here is refused by the Home Only guard before anything is sent.
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { appendFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
@@ -83,6 +83,28 @@ describe("scoring", () => {
     expect(r.verdict).toBe("equivalent_cheaper");
     expect(r.recipe).toBe("claude-sonnet-5");
     expect(r.why).toMatch(/cheaper/);
+  });
+});
+
+describe("the app reads the sidecar over a pipe", () => {
+  test("an answer far past a pipe's 64 KB buffer arrives whole", () => {
+    // The app runs the sidecar as a child process and parses its stdout. A pipe
+    // takes 64 KB before it blocks, so an entry point that exits without waiting
+    // hands the app half a JSON document. 400 captured prompts are ~230 KB.
+    const stream = join(vault, "build/_meta/prompts/claude.demo-laptop.jsonl");
+    const now = Date.now();
+    const filler = Array.from({ length: 400 }, (_, i) => JSON.stringify({
+      epoch_ms: now - (i + 1) * 60_000, tool: "claude", host: "demo-laptop", session: `big${i}`, cwd: "/tmp",
+      prompt: `Draft a short note about trail number ${i}. ${"Keep it plain and concrete. ".repeat(12)}`,
+    })).join("\n") + "\n";
+    appendFileSync(stream, filler);
+    const raw = execFileSync(BIN, ["tasks", "--source", "ghost", "--limit", "400", "--vault", vault], {
+      encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: { ...process.env, PREVAIL_VAULT: "" },
+    });
+    expect(raw.length).toBeGreaterThan(80_000);
+    const tasks = JSON.parse(raw.trim());
+    expect(Array.isArray(tasks)).toBe(true);
+    expect(tasks.length).toBeGreaterThan(100);
   });
 });
 

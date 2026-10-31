@@ -10,6 +10,9 @@ export interface Recipe {
   id: string; label: string; cli: string; model: string; baseUrl?: string;
   prompt: "plain" | "concise" | "expert"; context: "none" | "domain"; tools: "none" | "web";
   active?: boolean; source?: string;
+  /** Why this recipe cannot run on this Mac (engine missing, or an engine that
+   *  cannot be held off the web and is not a "+ web" recipe). Null when it can. */
+  blocked?: string | null;
 }
 export interface Route {
   domain: string; kind: TaskKind | "*"; weight: Weight | "*"; recipe: string; cli: string; model: string;
