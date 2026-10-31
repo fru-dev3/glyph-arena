@@ -24,11 +24,33 @@ fi
 
 APP="src-tauri/target/release/bundle/macos/Glyph Arena.app"
 
-# Notarize the app itself, with our own wait. Already stapled: nothing to do.
+# Notarize: submit, then poll. `notarytool ... --wait` dies with "Bus error: 10"
+# here (twice, on different builds) after the upload has already gone through, so
+# the wait is ours: submit, read the id, ask for the status once a minute.
+notarize() {  # notarize <file>
+  local id
+  id="$(xcrun notarytool submit "$1" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" \
+        | sed -n 's/ *id: //p' | head -1)"
+  [ -n "$id" ] || { echo "notarize: no submission id for $1" >&2; return 1; }
+  echo "notarize: $1 -> $id"
+  local s=""
+  for _ in $(seq 1 60); do
+    s="$(xcrun notarytool info "$id" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" 2>&1 | sed -n 's/ *status: //p' | head -1)"
+    case "$s" in
+      Accepted) return 0 ;;
+      Invalid|Rejected) echo "notarize: Apple said $s for $id" >&2; return 1 ;;
+    esac
+    sleep 60
+  done
+  echo "notarize: still $s after an hour ($id)" >&2
+  return 1
+}
+
+# The app itself. Already stapled: nothing to do.
 if ! xcrun stapler validate "$APP" >/dev/null 2>&1; then
   ZIP="$(mktemp -d)/$NAME.zip"
   ditto -c -k --keepParent "$APP" "$ZIP"
-  xcrun notarytool submit "$ZIP" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" --wait --timeout 30m
+  notarize "$ZIP"
   xcrun stapler staple "$APP"
   rm -rf "$(dirname "$ZIP")"
 fi
@@ -52,7 +74,7 @@ GK="$(spctl -a -vv "$APP" 2>&1)"; echo "$GK"
 
 # The DMG itself: sign, notarize, staple, so the download opens without a warning.
 codesign --force --sign "$APPLE_SIGNING_IDENTITY" --timestamp "$DMG"
-xcrun notarytool submit "$DMG" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" --wait
+notarize "$DMG"
 xcrun stapler staple "$DMG"
 spctl -a -t open --context context:primary-signature -vv "$DMG"
 
