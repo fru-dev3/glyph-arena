@@ -8,17 +8,41 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 : "${APPLE_SIGNING_IDENTITY:?}" "${APPLE_API_KEY:?}" "${APPLE_API_ISSUER:?}" "${APPLE_API_KEY_PATH:?}"
 VERSION="$(node -p 'require("./src-tauri/tauri.conf.json").version')"
+NAME="$(node -p 'require("./src-tauri/tauri.conf.json").productName')"
 TAG="v$VERSION"
 echo "release: Glyph Arena $VERSION"
 
 if [ "${SKIP_BUILD:-0}" != "1" ]; then
   bash scripts/prepare-sidecar.sh
   npm ci --no-audit --no-fund >/dev/null
-  npx tauri build --bundles app,dmg
+  # Only the .app, and signed but NOT notarized here: tauri's DMG step drives Finder
+  # through AppleScript and times out on a Mac with no one at the screen, and its
+  # notarize step gives up on a slow day at Apple with an empty error. We do both
+  # ourselves below, where a slow answer is only a longer wait.
+  env -u APPLE_API_KEY -u APPLE_API_ISSUER -u APPLE_API_KEY_PATH npx tauri build --bundles app
 fi
 
 APP="src-tauri/target/release/bundle/macos/Glyph Arena.app"
-DMG="$(ls src-tauri/target/release/bundle/dmg/*.dmg | head -1)"
+
+# Notarize the app itself, with our own wait. Already stapled: nothing to do.
+if ! xcrun stapler validate "$APP" >/dev/null 2>&1; then
+  ZIP="$(mktemp -d)/$NAME.zip"
+  ditto -c -k --keepParent "$APP" "$ZIP"
+  xcrun notarytool submit "$ZIP" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" --wait --timeout 30m
+  xcrun stapler staple "$APP"
+  rm -rf "$(dirname "$ZIP")"
+fi
+DMG="src-tauri/target/release/bundle/dmg/${NAME}_${VERSION}_aarch64.dmg"
+if [ "${SKIP_BUILD:-0}" != "1" ] || [ ! -f "$DMG" ]; then
+  STAGE="$(mktemp -d)/$NAME"
+  mkdir -p "$STAGE" "$(dirname "$DMG")"
+  cp -R "$APP" "$STAGE/"
+  ln -s /Applications "$STAGE/Applications"
+  rm -f "$DMG"
+  hdiutil create -volname "$NAME" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+  rm -rf "$(dirname "$STAGE")"
+  echo "release: $DMG"
+fi
 codesign --verify --deep --strict "$APP"
 # Capture first: grep -q closing the pipe early would fail the step under pipefail.
 SIDE="$(codesign -dvv "$APP/Contents/MacOS/arena-engine" 2>&1)"
