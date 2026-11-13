@@ -76,9 +76,15 @@ fn sidecar() -> PathBuf {
     if bundled.exists() {
         return bundled;
     }
-    // `tauri dev`: the binary sits in src-tauri/binaries with its target triple.
-    let triple = if cfg!(target_arch = "aarch64") { "aarch64-apple-darwin" } else { "x86_64-apple-darwin" };
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("binaries/arena-engine-{triple}"))
+    // `tauri dev` only (a debug build): the binary sits in src-tauri/binaries with its target
+    // triple. A release build must not bake the build folder's path into the app.
+    #[cfg(debug_assertions)]
+    {
+        let triple = if cfg!(target_arch = "aarch64") { "aarch64-apple-darwin" } else { "x86_64-apple-darwin" };
+        return PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("binaries/arena-engine-{triple}"));
+    }
+    #[cfg(not(debug_assertions))]
+    bundled
 }
 
 fn command(args: &[String]) -> Result<tokio::process::Command, String> {

@@ -12,8 +12,14 @@ NAME="$(node -p 'require("./src-tauri/tauri.conf.json").productName')"
 TAG="v$VERSION"
 echo "release: Glyph Arena $VERSION"
 
+# A release build carries no source paths: rustc swaps the home folder, the cargo home and this
+# folder for neutral names in every panic and debug path it bakes in (the binary is stripped too).
+CARGO_HOME_DIR="${CARGO_HOME:-$HOME/.cargo}"
+REPO_DIR="$(pwd -P)"
+export RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=$HOME=/home --remap-path-prefix=$CARGO_HOME_DIR=/cargo --remap-path-prefix=$REPO_DIR=/src"
+
 if [ "${SKIP_BUILD:-0}" != "1" ]; then
-  bash scripts/prepare-sidecar.sh
+  [ "${KEEP_SIDECAR:-0}" = "1" ] || bash scripts/prepare-sidecar.sh   # KEEP_SIDECAR=1: reuse the engine already in src-tauri/binaries
   npm ci --no-audit --no-fund >/dev/null
   # Only the .app, and signed but NOT notarized here: tauri's DMG step drives Finder
   # through AppleScript and times out on a Mac with no one at the screen, and its
@@ -66,6 +72,7 @@ if [ "${SKIP_BUILD:-0}" != "1" ] || [ ! -f "$DMG" ]; then
   echo "release: $DMG"
 fi
 codesign --verify --deep --strict "$APP"
+zsh scripts/public-scan.sh "$APP"   # fails the release if the app carries anything personal
 # Capture first: grep -q closing the pipe early would fail the step under pipefail.
 SIDE="$(codesign -dvv "$APP/Contents/MacOS/arena-engine" 2>&1)"
 [[ "$SIDE" == *"Authority=Developer ID Application"* ]] || { echo "sidecar is not Developer ID signed" >&2; exit 1; }
@@ -77,6 +84,7 @@ codesign --force --sign "$APPLE_SIGNING_IDENTITY" --timestamp "$DMG"
 notarize "$DMG"
 xcrun stapler staple "$DMG"
 spctl -a -t open --context context:primary-signature -vv "$DMG"
+zsh scripts/public-scan.sh "$DMG"   # the final image, before anything is uploaded
 
 mkdir -p dist-release
 cp "$DMG" "dist-release/Glyph-Arena_${VERSION}_aarch64.dmg"
